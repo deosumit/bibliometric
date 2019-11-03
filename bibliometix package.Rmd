@@ -1,0 +1,388 @@
+---
+title: "bibliometrix package"
+author: "Sumit Shinde"
+date: "03/11/2019"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r, include = FALSE}
+#Set working Directory 
+setwd("C:/Users/sumit/Documents/UCLA/3rd Year/macro chapter/bibliography data")
+
+
+#Install required packages
+rm(list = ls())
+
+pklist <- c("tidyverse","bibliometrix","tm","wordcloud")
+source("https://fgeerolf.github.io/code/load-packages.R")
+
+```
+
+
+```{r, eval = FALSE}
+# for(i in 1:9){
+# 
+# assign(paste("D.",i,sep=""), readFiles(paste("savedrecs (",i,").txt",sep="")))
+# 
+# t2 <- paste("D.",i,sep="")
+# t1 <- convert2df(t2, dbsource = "isi")
+# 
+
+#}
+```
+
+```{r, include=F}
+
+D1<- readFiles("C:/Users/sumit/Documents/UCLA/3rd Year/macro chapter/bibliography data/savedrecs (1).txt")
+D2<- readFiles("C:/Users/sumit/Documents/UCLA/3rd Year/macro chapter/bibliography data/savedrecs (2).txt")
+D3<- readFiles("C:/Users/sumit/Documents/UCLA/3rd Year/macro chapter/bibliography data/savedrecs (3).txt")
+D4<- readFiles("C:/Users/sumit/Documents/UCLA/3rd Year/macro chapter/bibliography data/savedrecs (4).txt")
+D5<- readFiles("C:/Users/sumit/Documents/UCLA/3rd Year/macro chapter/bibliography data/savedrecs (5).txt")
+D6<- readFiles("C:/Users/sumit/Documents/UCLA/3rd Year/macro chapter/bibliography data/savedrecs (6).txt")
+D7<- readFiles("C:/Users/sumit/Documents/UCLA/3rd Year/macro chapter/bibliography data/savedrecs (7).txt")
+D8<- readFiles("C:/Users/sumit/Documents/UCLA/3rd Year/macro chapter/bibliography data/savedrecs (8).txt")
+D9<- readFiles("C:/Users/sumit/Documents/UCLA/3rd Year/macro chapter/bibliography data/savedrecs (9).txt")
+D10<- readFiles("C:/Users/sumit/Documents/UCLA/3rd Year/macro chapter/bibliography data/savedrecs (10).txt")
+D11<- readFiles("C:/Users/sumit/Documents/UCLA/3rd Year/macro chapter/bibliography data/savedrecs (11).txt")
+D12<- readFiles("C:/Users/sumit/Documents/UCLA/3rd Year/macro chapter/bibliography data/savedrecs (12).txt")
+D13<- readFiles("C:/Users/sumit/Documents/UCLA/3rd Year/macro chapter/bibliography data/savedrecs (13).txt")
+D14<- readFiles("C:/Users/sumit/Documents/UCLA/3rd Year/macro chapter/bibliography data/savedrecs (14).txt")
+D15<- readFiles("C:/Users/sumit/Documents/UCLA/3rd Year/macro chapter/bibliography data/savedrecs (15).txt")
+D16<- readFiles("C:/Users/sumit/Documents/UCLA/3rd Year/macro chapter/bibliography data/savedrecs (16).txt")
+D17<- readFiles("C:/Users/sumit/Documents/UCLA/3rd Year/macro chapter/bibliography data/savedrecs (17).txt")
+D22<- readFiles("C:/Users/sumit/Documents/UCLA/3rd Year/macro chapter/bibliography data/savedrecs (22).txt")
+D23<- readFiles("C:/Users/sumit/Documents/UCLA/3rd Year/macro chapter/bibliography data/savedrecs (23).txt")
+D24<- readFiles("C:/Users/sumit/Documents/UCLA/3rd Year/macro chapter/bibliography data/savedrecs (24).txt")
+D25<- readFiles("C:/Users/sumit/Documents/UCLA/3rd Year/macro chapter/bibliography data/savedrecs (25).txt")
+D26<- readFiles("C:/Users/sumit/Documents/UCLA/3rd Year/macro chapter/bibliography data/savedrecs (26).txt")
+D27<- readFiles("C:/Users/sumit/Documents/UCLA/3rd Year/macro chapter/bibliography data/savedrecs (27).txt")
+D28<- readFiles("C:/Users/sumit/Documents/UCLA/3rd Year/macro chapter/bibliography data/savedrecs (28).txt")
+D29<- readFiles("C:/Users/sumit/Documents/UCLA/3rd Year/macro chapter/bibliography data/savedrecs (29).txt")
+
+
+D1<- convert2df(D1, dbsource ="isi")
+D2<- convert2df(D2, dbsource ="isi")
+D3<- convert2df(D3, dbsource ="isi")
+D4<- convert2df(D4, dbsource ="isi")
+D5<- convert2df(D5, dbsource ="isi")
+D6<- convert2df(D6, dbsource ="isi")
+D7<- convert2df(D7, dbsource ="isi")
+D8<- convert2df(D8, dbsource ="isi")
+D9<- convert2df(D9, dbsource ="isi")
+D10<- convert2df(D10, dbsource ="isi")
+D11<- convert2df(D11, dbsource ="isi")
+D12<- convert2df(D12, dbsource ="isi")
+D13<- convert2df(D13, dbsource ="isi")
+D14<- convert2df(D14, dbsource ="isi")
+D15<- convert2df(D15, dbsource ="isi")
+D16<- convert2df(D16, dbsource ="isi")
+D17<- convert2df(D17, dbsource ="isi")
+D22<- convert2df(D22, dbsource ="isi")
+D23<- convert2df(D23, dbsource ="isi")
+D24<- convert2df(D24, dbsource ="isi")
+D25<- convert2df(D25, dbsource ="isi")
+D26<- convert2df(D26, dbsource ="isi")
+D27<- convert2df(D27, dbsource ="isi")
+D28<- convert2df(D28, dbsource ="isi")
+D29<- convert2df(D29, dbsource ="isi")
+
+data <- list(D1,D2,D3,D4,D5,D6,D7,D8,D9,D10,D11,D12,D13,D14,D15,D16,D17,D22,D23,D24,D25,D26,D27,D28,D29)
+D <- do.call(rbind, unname(data))
+
+D <- rbind_all(lapply(data,add_rownames))
+
+rm(D1,D2,D3,D4,D5,D6,D7,D8,D9,D10,D11,D12,D13,D14,D15,D16,D17,D22,D23,D24,D25,D26,D27,D28,D29)
+
+#D <- D %>% select(PY,DE,UT) 
+
+#trends in key words
+#D <- D %>% mutate(mon.pol=as.numeric(str_detect(DE,"MONETARY")),fis.pol=as.numeric(str_detect(DE,"FISCAL")),
+#                  crisis=as.numeric(str_detect(DE,"CRISIS")),rec=as.numeric(str_detect(DE,"RECESSION")))
+
+#temp1 <- D %>% select(PY,mon.pol,fis.pol,crisis,rec) %>%
+                # group_by(PY) %>% 
+                # summarise(tot.papers=n(),mon.pol=sum(mon.pol, na.rm=TRUE),
+                #           fis.pol=sum(fis.pol,na.rm=TRUE),
+                #           crisis=sum(crisis,na.rm=TRUE),
+                #           rec=sum(rec,na.rm=TRUE) ) %>%
+                # mutate(mon.pol=(mon.pol/tot.papers)*100, 
+                #        fis.pol=(fis.pol/tot.papers)*100, 
+                #        crisis=(crisis/tot.papers)*100, 
+                #        rec=(rec/tot.papers)*100)
+```
+
+
+```{r, include=F}
+d <- D %>% filter(SO== "JOURNAL OF MONETARY ECONOMICS"|
+                  SO== "REVIEW OF ECONOMIC DYNAMICS"|
+                  SO== "JOURNAL OF MONEY CREDIT AND BANKING"|
+                  SO== "AMERICAN ECONOMIC JOURNAL-MACROECONOMICS")
+
+d <- citations(d, sep=";")
+
+d <- as.data.frame(d)
+
+d <- d %>% filter(Source=="J POLIT ECON" | 
+                  Source=="Q J ECON" | 
+                  Source=="AM ECON REV" | 
+                  Source=="ECONOMETRICA" | 
+                  Source=="REV ECON STUD") %>%
+          filter(Year>1999 & Year<2019) %>% 
+          separate(Cited.CR, c("Author","DOI", "b","c"), sep="DOI ", extra = "merge") %>%
+          select(-c,-b) %>%
+          filter(is.na(DOI)==0) %>%
+          rename(DI=DOI) %>%
+          mutate(id=1)
+
+D <- D %>% left_join(d,by="DI") %>% filter(!(SO=="ECONOMETRICA" & is.na(id)==1) &
+                                           !(SO=="AMERICAN ECONOMIC REVIEW"  & is.na(id)==1) &
+                                           !(SO=="QUARTERLY JOURNAL OF ECONOMICS" & is.na(id)==1) &
+                                           !(SO=="REVIEW OF ECONOMIC STUDIES" & is.na(id)==1) &
+                                           !(SO=="JOURNAL OF POLITICAL ECONOMY" & is.na(id)==1))
+
+rm(d)
+
+# %>%filter(Cited.Freq>5)
+# 
+# d <- d %>% separate(Cited.CR, c("Author","DOI", "b","c"), sep="DOI ", extra = "merge") %>% 
+#             select(-c,-b)
+# 
+# 
+# 
+# %>%
+#             mutate(DOI=replace(DOI,DOI=="" & is.na(b)==0,b))
+
+```
+|
+
+```{r, include=FALSE}
+temp2<- D %>% select(PY,AB) %>% 
+              mutate(mon.pol=as.numeric(str_detect(AB,"MONETARY")),
+                     fis.pol=as.numeric(str_detect(AB,"FISCAL")),
+                     crisis=as.numeric(str_detect(AB,"CRISIS")),
+                     recession=as.numeric(str_detect(AB,"RECESSION")),
+                     bus.cyc=as.numeric(str_detect(AB,"BUSINESS CYCLE")),
+                     growth=as.numeric(str_detect(AB,"GROWTH")),
+                     banking=as.numeric(str_detect(AB,"BANKING")),
+                     friction=as.numeric(str_detect(AB,"FRICTION")),
+                     het.agent=as.numeric(str_detect(AB,"HETEROGENOUS AGENT")),
+                     model=as.numeric(str_detect(AB,"MODEL")),
+                     dsge=as.numeric(str_detect(AB,"DSGE")),
+                     rbc=as.numeric(str_detect(AB,"RBC")),
+                     housing=as.numeric(str_detect(AB,"HOUSING")),
+                     debt=as.numeric(str_detect(AB,"DEBT")),
+                     simul=as.numeric(str_detect(AB,"SIMULATION")),
+                     calib=as.numeric(str_detect(AB,"CALIBRATION")),
+                     c.fact=as.numeric(str_detect(AB,"COUNTER FACTUAL")),
+                     reg=as.numeric(str_detect(AB,"REGRESSION")),
+                     empiric=as.numeric(str_detect(AB,"EMPIRIC")),
+                     r.e=as.numeric(str_detect(AB,"RATIONAL EXPECTATION")),
+                     neo.clas=as.numeric(str_detect(AB,"CLASSICAL")),
+                     neo.key=as.numeric(str_detect(AB,"KEYNES")),
+                     theory=as.numeric(str_detect(AB,"THEORY")),
+                     evidence=as.numeric(str_detect(AB,"EVIDENCE")),
+                     data=as.numeric(str_detect(AB,"DATA"))) %>%
+              group_by(PY) %>%
+              summarise(tot.papers=n(),
+                        mon.pol=sum(mon.pol, na.rm=TRUE),
+                        fis.pol=sum(fis.pol,na.rm=TRUE),
+                        crisis=sum(crisis,na.rm=TRUE),
+                        recession=sum(recession,na.rm=TRUE),
+                        bus.cyc=sum(bus.cyc, na.rm=TRUE),
+                        growth=sum(growth, na.rm=TRUE),
+                        banking=sum(banking,na.rm=TRUE),
+                        friction=sum(friction,na.rm=TRUE),
+                        het.agent=sum(het.agent,na.rm=TRUE),
+                        model=sum(model, na.rm=TRUE),
+                        dsge=sum(dsge,na.rm=TRUE),
+                        rbc=sum(rbc,na.rm=TRUE),
+                        housing=sum(housing,na.rm=TRUE),
+                        debt=sum(debt,na.rm=TRUE),
+                        simul=sum(simul, na.rm=TRUE),
+                        calib=sum(calib,na.rm=TRUE),
+                        c.fact=sum(c.fact,na.rm=TRUE),
+                        reg=sum(reg,na.rm=TRUE),
+                        empiric=sum(empiric,na.rm=TRUE),
+                        r.e=sum(r.e,na.rm=TRUE),
+                        neo.clas=sum(neo.clas,na.rm=TRUE),
+                        neo.key=sum(neo.key,na.rm=TRUE),
+                        theory=sum(theory,na.rm=TRUE),
+                        evidence=sum(evidence,na.rm=TRUE),
+                        data=sum(data,na.rm=TRUE)) %>%
+              mutate(mon.pol=(mon.pol/tot.papers)*100, 
+                     fis.pol=(fis.pol/tot.papers)*100, 
+                     crisis=(crisis/tot.papers)*100, 
+                     recession=(recession/tot.papers)*100,
+                     bus.cyc=(bus.cyc/tot.papers)*100, 
+                     growth=(growth/tot.papers)*100,
+                     banking=(banking/tot.papers)*100, 
+                     friction=(friction/tot.papers)*100, 
+                     het.agent=(het.agent/tot.papers)*100,
+                      model=(model/tot.papers)*100, 
+                      dsge=(dsge/tot.papers)*100, 
+                      rbc=(rbc/tot.papers)*100,
+                      housing=(housing/tot.papers)*100, 
+                      debt=(debt/tot.papers)*100,
+                     simul=(simul/tot.papers)*100,
+                     calib=(calib/tot.papers)*100, 
+                     c.fact=(c.fact/tot.papers)*100, 
+                     reg=(reg/tot.papers)*100, 
+                     empiric=(empiric/tot.papers)*100,
+                     r.e=(r.e/tot.papers)*100,
+                     neo.clas=(neo.clas/tot.papers)*100,
+                     neo.key=(neo.key/tot.papers)*100,
+                     theory=(theory/tot.papers)*100,
+                     evidence=(evidence/tot.papers)*100,
+                     data=(data/tot.papers)*100)
+```
+
+## Number of Papers
+
+```{r, echo=FALSE, message=FALSE}
+#Policy
+temp3 <- select(D,PY,SO) %>% group_by(PY,SO) %>% summarise(tot.papers=n())
+
+ggplot(temp3, aes(PY,tot.papers,color=SO)) + 
+  geom_point(size=0.75) + 
+  geom_smooth(se=F) +
+  geom_vline(xintercept = 2008, linetype="dotted", color = "blue", size=1) 
+
+
+# +
+#   scale_fill_discrete(name="Journal", breaks=c("JOURNAL OF MONEY CREDIT AND BANKING", 
+#                                   "REVIEW OF ECONOMIC DYNAMICS" , 
+#                                   "JOURNAL OF MONETARY ECONOMICS",
+#                                   "AMERICAN ECONOMIC JOURNAL-MACROECONOMICS"),
+#                          labels=c("JMCB", "RED", "JME", "AEJ: Macro"))
+```
+
+## Word Clouds
+### Keywords
+```{r, echo=FALSE, message=FALSE, warning=FALSE}
+corpus <- Corpus(VectorSource(D$DE))
+corpus <- tm_map(corpus, content_transformer(tolower))
+corpus <- tm_map(corpus, removeNumbers)
+corpus <- tm_map(corpus, removeWords, stopwords("english"))
+corpus <- tm_map(corpus, removePunctuation)
+corpus <- tm_map(corpus, stripWhitespace)
+corpus <- tm_map(corpus, removeWords, c("elsevier","reserved","rights","by"))
+
+tdm <- TermDocumentMatrix(corpus)
+m <- as.matrix(tdm)
+v <- sort(rowSums(m),decreasing=TRUE)
+d <- data.frame(word= names(v), freq=v)
+
+wordcloud(d$word,d$freq, random.order=FALSE,max.words=100,colors=brewer.pal(8,"Dark2"))
+```
+
+### Abstract
+```{r, echo=FALSE, message=FALSE, warning=FALSE}
+corpus <- Corpus(VectorSource(D$AB))
+corpus <- tm_map(corpus, content_transformer(tolower))
+corpus <- tm_map(corpus, removeNumbers)
+corpus <- tm_map(corpus, removeWords, stopwords("english"))
+corpus <- tm_map(corpus, removePunctuation)
+corpus <- tm_map(corpus, stripWhitespace)
+corpus <- tm_map(corpus, removeWords, c("elsevier","reserved","rights","by"))
+
+tdm <- TermDocumentMatrix(corpus)
+m <- as.matrix(tdm)
+v <- sort(rowSums(m),decreasing=TRUE)
+d <- data.frame(word= names(v), freq=v)
+
+wordcloud(d$word,d$freq, random.order=FALSE,max.words=100,colors=brewer.pal(8,"Dark2"))
+```
+
+
+## Trends
+
+### Policy
+
+```{r, echo=FALSE, message=FALSE}
+#Policy
+ggplot(gather(select(temp2,PY,mon.pol,fis.pol),`mon.pol`,`fis.pol`,key="trend",value="prop"),aes(PY,prop,color=trend)) + 
+  geom_point() + 
+  geom_smooth(se=F) +
+  geom_vline(xintercept = 2008, linetype="dotted", color = "blue", size=1)
+```
+
+### Crisis, Recession, Housing, Debt and Banking
+
+```{r, echo=FALSE, message=FALSE}
+ggplot(gather(select(temp2,PY,crisis,recession,housing,debt,banking),`crisis`,`recession`,`housing`,`debt`,`banking`,key="trend",value="prop"),aes(PY,prop,color=trend)) + 
+  geom_point() + 
+  geom_smooth(se=F) +
+  geom_vline(xintercept = 2008, linetype="dotted", color = "blue", size=1)
+```
+
+### Business Cyles, Growth
+
+```{r, echo=FALSE, message=FALSE}
+ggplot(gather(select(temp2,PY,bus.cyc,growth),`bus.cyc`,`growth`,key="trend",value="prop"),aes(PY,prop,color=trend)) + 
+  geom_point() + 
+  geom_smooth(se=F) +
+  geom_vline(xintercept = 2008, linetype="dotted", color = "blue", size=1)
+```
+
+
+### RBC, DSGE, Simulation, Calibration, Counter-Factural, Regression
+
+```{r, echo=FALSE, message=FALSE}
+#methodology   
+ggplot(gather(select(temp2,PY,dsge,simul,calib,c.fact,reg,rbc),`rbc`,`dsge`,`simul`,`calib`,`c.fact`,`reg`,key="trend",value="prop"),aes(PY,prop,color=trend)) + 
+  geom_point() + 
+  geom_smooth(se=F) +
+  geom_vline(xintercept = 2008, linetype="dotted", color = "blue", size=1)
+```
+
+### Model, Empiric, theory, evidence, data
+
+```{r, echo=FALSE, message=FALSE}
+ggplot(gather(select(temp2,PY,model,empiric,evidence,data,theory),`model`,`empiric`,`evidence`,`data`,`theory`,key="trend",value="prop"),aes(PY,prop,color=trend)) +   geom_point() + 
+  geom_smooth(se=F)  +
+  geom_vline(xintercept = 2008, linetype="dotted", color = "blue", size=1) 
+```              
+
+### NeW-Keysian, Neo-classical 
+
+```{r, echo=FALSE, message=FALSE}
+ggplot(gather(select(temp2,PY,neo.clas,neo.key),`neo.clas`,`neo.key`,key="trend",value="prop"),aes(PY,prop,color=trend)) + 
+  geom_point() + 
+  geom_smooth(se=F) +
+  geom_vline(xintercept = 2008, linetype="dotted", color = "blue", size=1) 
+```
+
+### New Modelling Strategies- Friction, Heterogenous Agent, Rational Expectations
+
+```{r, echo=FALSE, message=FALSE}
+ggplot(gather(select(temp2,PY,friction,het.agent,r.e),`friction`,`het.agent`,`r.e`,key="trend",value="prop"),aes(PY,prop,color=trend)) + 
+  geom_point() + 
+  geom_smooth(se=F)  +
+  geom_vline(xintercept = 2008, linetype="dotted", color = "blue", size=1)
+```
+
+# Bibliometric Analysis
+```{r, echo=FALSE, eval=F}
+sumary <- biblioAnalysis(D, sep=";")
+options(width=100)
+S <- summary(object = sumary, k = 25, pause = FALSE)
+plot(x=sumary, k=25, pause=F)
+```
+
+```{r}
+D.sub <- D %>% filter(as.numeric(str_detect(DE,"BUSINESS CYCLE"))==1) %>%
+          select(PT,AU,AF,TI,SO,DE,ID,AB,CR,NR,TC,Z9,U1,U2,SN,EI,PD,PY,VL,BP,EP,DI,SC,UT,DA,ER,OI,RI,HC,CT,CY,CL,HO,PM,SU,IS,DB,C1,AU_UN,SR_FULL,SR)
+NetMatrix <- biblioNetwork(D1, analysis = "coupling", network = "references", sep = ".  ")
+```
+
+
+```{r, eval=F}
+CR <- citations(D, field = "article", sep = ";")
+LCR <- localCitations(D, sep = ";")
+LCR$Authors[1:10,]
+LCR$Papers[1:10,]
+```
