@@ -23,7 +23,8 @@ source("https://fgeerolf.github.io/code/load-packages.R")
 ```
 
 
-```{r, eval = FALSE}
+```{r, eval = FALSE, include=F}
+#Attempt to loop over text file names
 # for(i in 1:9){
 # 
 # assign(paste("D.",i,sep=""), readFiles(paste("savedrecs (",i,").txt",sep="")))
@@ -91,28 +92,16 @@ D28<- convert2df(D28, dbsource ="isi")
 D29<- convert2df(D29, dbsource ="isi")
 
 data <- list(D1,D2,D3,D4,D5,D6,D7,D8,D9,D10,D11,D12,D13,D14,D15,D16,D17,D22,D23,D24,D25,D26,D27,D28,D29)
-D <- do.call(rbind, unname(data))
 
-D <- rbind_all(lapply(data,add_rownames))
+D <- bind_rows(data)
 
-rm(D1,D2,D3,D4,D5,D6,D7,D8,D9,D10,D11,D12,D13,D14,D15,D16,D17,D22,D23,D24,D25,D26,D27,D28,D29)
+#Trying to not loose the attributes
+# D <- do.call(rbind, unname(data))
+# 
+# D <- rbind_all(lapply(data,add_rownames))
+# 
+#rm(D1,D2,D3,D4,D5,D6,D7,D8,D9,D10,D11,D12,D13,D14,D15,D16,D17,D22,D23,D24,D25,D26,D27,D28,D29)
 
-#D <- D %>% select(PY,DE,UT) 
-
-#trends in key words
-#D <- D %>% mutate(mon.pol=as.numeric(str_detect(DE,"MONETARY")),fis.pol=as.numeric(str_detect(DE,"FISCAL")),
-#                  crisis=as.numeric(str_detect(DE,"CRISIS")),rec=as.numeric(str_detect(DE,"RECESSION")))
-
-#temp1 <- D %>% select(PY,mon.pol,fis.pol,crisis,rec) %>%
-                # group_by(PY) %>% 
-                # summarise(tot.papers=n(),mon.pol=sum(mon.pol, na.rm=TRUE),
-                #           fis.pol=sum(fis.pol,na.rm=TRUE),
-                #           crisis=sum(crisis,na.rm=TRUE),
-                #           rec=sum(rec,na.rm=TRUE) ) %>%
-                # mutate(mon.pol=(mon.pol/tot.papers)*100, 
-                #        fis.pol=(fis.pol/tot.papers)*100, 
-                #        crisis=(crisis/tot.papers)*100, 
-                #        rec=(rec/tot.papers)*100)
 ```
 
 
@@ -146,15 +135,6 @@ D <- D %>% left_join(d,by="DI") %>% filter(!(SO=="ECONOMETRICA" & is.na(id)==1) 
 
 rm(d)
 
-# %>%filter(Cited.Freq>5)
-# 
-# d <- d %>% separate(Cited.CR, c("Author","DOI", "b","c"), sep="DOI ", extra = "merge") %>% 
-#             select(-c,-b)
-# 
-# 
-# 
-# %>%
-#             mutate(DOI=replace(DOI,DOI=="" & is.na(b)==0,b))
 
 ```
 |
@@ -241,23 +221,36 @@ temp2<- D %>% select(PY,AB) %>%
 ```
 
 ## Number of Papers
+I have selected top 5 journals: American Economic Review, Econometrica, Journal of Political Economy, Quarterly Journal of Economics, Review of Economic Studies. 
+
+And top 4 macro field journals: Journal of Money, Credit and Banking, Review of Economic Dynamics, Journal of Monetary Economics, American Economic Journal- Macroeconomics. 
+
+The vertical blue line in the graph below higlights year 2008. 
+
 
 ```{r, echo=FALSE, message=FALSE}
 #Policy
-temp3 <- select(D,PY,SO) %>% group_by(PY,SO) %>% summarise(tot.papers=n())
+temp3 <- select(D,PY,SO) %>% 
+          group_by(PY,SO) %>% 
+          summarise(tot.papers=n()) %>% 
+          ungroup%>% 
+          mutate(SO=replace(SO,SO=="AMERICAN ECONOMIC JOURNAL-MACROECONOMICS","AEJ-Macro"),
+                 SO=replace(SO,SO=="AMERICAN ECONOMIC REVIEW","AER"),
+                 SO=replace(SO,SO=="ECONOMETRICA","ECMA"),
+                 SO=replace(SO,SO=="JOURNAL OF MONEY CREDIT AND BANKING","JMCB"),
+                 SO=replace(SO,SO=="JOURNAL OF POLITICAL ECONOMY","JPE"),
+                 SO=replace(SO,SO=="QUARTERLY JOURNAL OF ECONOMICS","QJE"),
+                 SO=replace(SO,SO=="REVIEW OF ECONOMIC DYNAMICS","REDyn"),
+                 SO=replace(SO,SO=="REVIEW OF ECONOMIC STUDIES","REStud"),
+                 SO=replace(SO,SO=="JOURNAL OF MONETARY ECONOMICS","JME")) %>% rename(Journal=SO)
+    
 
-ggplot(temp3, aes(PY,tot.papers,color=SO)) + 
+ggplot(temp3, aes(PY,tot.papers,color=Journal)) + 
   geom_point(size=0.75) + 
   geom_smooth(se=F) +
   geom_vline(xintercept = 2008, linetype="dotted", color = "blue", size=1) 
 
-
-# +
-#   scale_fill_discrete(name="Journal", breaks=c("JOURNAL OF MONEY CREDIT AND BANKING", 
-#                                   "REVIEW OF ECONOMIC DYNAMICS" , 
-#                                   "JOURNAL OF MONETARY ECONOMICS",
-#                                   "AMERICAN ECONOMIC JOURNAL-MACROECONOMICS"),
-#                          labels=c("JMCB", "RED", "JME", "AEJ: Macro"))
+rm(temp3)               
 ```
 
 ## Word Clouds
@@ -269,7 +262,7 @@ corpus <- tm_map(corpus, removeNumbers)
 corpus <- tm_map(corpus, removeWords, stopwords("english"))
 corpus <- tm_map(corpus, removePunctuation)
 corpus <- tm_map(corpus, stripWhitespace)
-corpus <- tm_map(corpus, removeWords, c("elsevier","reserved","rights","by"))
+corpus <- tm_map(corpus, removeWords, c("elsevier","reserved","rights","by","can"))
 
 tdm <- TermDocumentMatrix(corpus)
 m <- as.matrix(tdm)
@@ -277,6 +270,8 @@ v <- sort(rowSums(m),decreasing=TRUE)
 d <- data.frame(word= names(v), freq=v)
 
 wordcloud(d$word,d$freq, random.order=FALSE,max.words=100,colors=brewer.pal(8,"Dark2"))
+
+rm(tdm,m,v,corpus)
 ```
 
 ### Abstract
@@ -287,7 +282,7 @@ corpus <- tm_map(corpus, removeNumbers)
 corpus <- tm_map(corpus, removeWords, stopwords("english"))
 corpus <- tm_map(corpus, removePunctuation)
 corpus <- tm_map(corpus, stripWhitespace)
-corpus <- tm_map(corpus, removeWords, c("elsevier","reserved","rights","by"))
+corpus <- tm_map(corpus, removeWords, c("elsevier","reserved","rights","by","can","however","increase","paper","use"))
 
 tdm <- TermDocumentMatrix(corpus)
 m <- as.matrix(tdm)
@@ -366,23 +361,43 @@ ggplot(gather(select(temp2,PY,friction,het.agent,r.e),`friction`,`het.agent`,`r.
 ```
 
 # Bibliometric Analysis
-```{r, echo=FALSE, eval=F}
-sumary <- biblioAnalysis(D, sep=";")
+```{r, echo=F}
+S <- biblioAnalysis(D, sep=";")
 options(width=100)
 S <- summary(object = sumary, k = 25, pause = FALSE)
 plot(x=sumary, k=25, pause=F)
 ```
 
-```{r}
-D.sub <- D %>% filter(as.numeric(str_detect(DE,"BUSINESS CYCLE"))==1) %>%
-          select(PT,AU,AF,TI,SO,DE,ID,AB,CR,NR,TC,Z9,U1,U2,SN,EI,PD,PY,VL,BP,EP,DI,SC,UT,DA,ER,OI,RI,HC,CT,CY,CL,HO,PM,SU,IS,DB,C1,AU_UN,SR_FULL,SR)
-NetMatrix <- biblioNetwork(D1, analysis = "coupling", network = "references", sep = ".  ")
+
+
+
+```{r, eval=F, include=F}
+CR <- citations(D, field = "article", sep = ";")
+topAU <- authorProdOverTime(D, k = 25, graph = TRUE)
+
+# LCR <- localCitations(D, sep = ";")
+# LCR$Authors[1:10,]
+# LCR$Papers[1:10,]
 ```
 
 
-```{r, eval=F}
-CR <- citations(D, field = "article", sep = ";")
-LCR <- localCitations(D, sep = ";")
-LCR$Authors[1:10,]
-LCR$Papers[1:10,]
+```{r, eval=F, include=F}
+# D.sub <- D %>% filter(as.numeric(str_detect(DE,"BUSINESS CYCLE"))==1) %>%
+#           select(PT,AU,AF,TI,SO,DE,ID,AB,CR,
+#                  NR,TC,Z9,U1,U2,SN,EI,PD,PY,
+#                  VL,BP,EP,DI,SC,UT,DA,ER,OI,
+#                  RI,HC,CT,CY,CL,HO,PM,SU,IS,
+#                  DB,C1,AU_UN,SR_FULL,SR)
+# NetMatrix <- biblioNetwork(D, analysis = "coupling", network = "authors", sep = ";")
+# 
+# net=networkPlot(NetMatrix,  normalize = "salton", weighted=NULL, n = 100, Title = "Authors' Coupling", type = "fruchterman", size=5,size.cex=T,remove.multiple=TRUE,labelsize=0.8,label.n=10,label.cex=F)
+
+NetMatrix <- biblioNetwork(D, analysis = "co-citation", network = "references", sep = ";")
+
+
+net=networkPlot(NetMatrix, n = 30, Title = "Co-Citation Network", type = "fruchterman", size=T, remove.multiple=FALSE, labelsize=0.7,edgesize = 5)
+
+netstat <- networkStat(NetMatrix)
+
+net=networkPlot(NetMatrix,  normalize = "salton", weighted=NULL, n = 100, Title = "Authors' Coupling", type = "fruchterman", size=5,size.cex=T,remove.multiple=TRUE,labelsize=0.8,label.n=10,label.cex=F)
 ```
